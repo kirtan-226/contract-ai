@@ -3,7 +3,7 @@ import MessageBubble from "./MessageBubble.jsx";
 import { useChat } from "../hooks/useChat.js";
 
 export default function ChatWindow({ storageKey = "chatbot_messages_v2" }) {
-  const { messages, sendMessage, isThinking, clear, exportJSON } = useChat(storageKey);
+  const { messages, sendMessage, sendPdf, isThinking, clear, exportJSON } = useChat(storageKey);
   const [input, setInput] = useState("");
   const listRef = useRef(null);
 
@@ -20,9 +20,20 @@ export default function ChatWindow({ storageKey = "chatbot_messages_v2" }) {
     await sendMessage(text);
   }
 
+  async function handlePickFile(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = ""; // reset for future uploads of same file
+    await sendPdf(file);
+  }
+
   return (
     <div className="rounded-2xl shadow-lg bg-white ring-1 ring-black/5 overflow-hidden h-full flex flex-col">
       <div className="flex items-center justify-end gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white">
+        <label className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg cursor-pointer">
+          Upload PDF
+          <input type="file" accept="application/pdf" onChange={handlePickFile} className="hidden" />
+        </label>
         <button onClick={exportJSON} className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg">Export</button>
         <button onClick={clear} className="text-xs bg-white/10 hover:bg-white/20 px-2 py-1 rounded-lg">Clear</button>
       </div>
@@ -47,7 +58,7 @@ export default function ChatWindow({ storageKey = "chatbot_messages_v2" }) {
             rows={1}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type a message... (Shift+Enter = newline)"
+            placeholder="Type a message... or upload a PDF (Shift+Enter = newline)"
             className="flex-1 resize-none rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-neutral-50"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

@@ -21,3 +21,15 @@ export async function continueAnalysis(sessionId, answers) {
   if (!r.ok) throw new Error(data?.detail || data?.error || "Failed to continue");
   return data;
 }
+
+export async function analyzePdf(file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const r = await fetch(`${API_BASE}/api/start-pdf`, {
+    method: "POST",
+    body: fd, // no content-type header; browser sets multipart boundary
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data?.detail || data?.error || "Failed to analyze PDF");
+  return data; // { prompt, output, extractedChars }
+}
